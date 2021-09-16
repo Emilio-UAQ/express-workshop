@@ -1,41 +1,32 @@
 const express = require( 'express');
 const pokemon = express.Router();
-//const pk = require( '../pokedex.json').pokemon;
-const db = require( '../config/database.js');
+const db = require( '../config/database');
 
 pokemon.post('/', (req, res, next) => {
-  res.status (200);
-  return res.send(req.body);
+  return res.status (200).json(req.body);
 });
 
 pokemon.get('/', async (req, res, next) => {
   const pkmn = await db.query("SELECT * FROM pokemon");
-  console.log(pkmn);
-  res.status (200);
-  return res.json(pkmn);
+	return res.status(200).json({ code: 1, message: pkmn });
 });
 
-pokemon.get('/:id([0-9]{1,3})', (req, res, next) => {
-  const id = req.params.id - 1;
-  if(id >= 0 && id <= 150) {
-    res.status (200);
-    return res.send(pk [req.params.id - 1]);
-  }
-  res.status (404);
-  return res.send("Pokémon no encontrado");
+pokemon.get('/:id([0-9]{1,3})', async (req, res, next) => {
+	const id = req.params.id;
+	if (id >= 1 && id <= 722) {
+		const pkmn = await db.query("SELECT * FROM pokemon WHERE pok_id = " + id + ";");
+  	return res.status(200).json({ code: 1, message: pkmn });
+	}
+	return res.status(404).send({ code: 404, message: "Pokémon no encontrado" });
 });
 
-pokemon.get('/:name([A-Za-z]+)', (req, res, next) => {
+pokemon.get('/:name([A-Za-z]+)', async (req, res, next) => {
   const name = req.params.name;
-  const pkmn = pk.filter((p) => {
-    return (p.name.toUpperCase() == name.toUpperCase()) ? p : null;
-  });
+  const pkmn = await db.query("SELECT * FROM pokemon WHERE UPPER(pok_name) = UPPER('"+name+"');");
   if (pkmn.length > 0) {
-    res.status (200);
-    return res.send(pkmn);
+    return res.status(200).json({ code: 1, message: pkmn });
   }
-  res.status (404);
-  return res.send("Pokémon no encontrado");
+  return res.status(404).send({ code: 404, message: "Pokémon no encontrado" });
 })
 
 module.exports = pokemon;
